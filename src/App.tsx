@@ -1,34 +1,41 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { Layout } from "./components/layout";
-import Dashboard from "./pages/Dashboard";
-import ReportIssue from "./pages/ReportIssue";
-import Analytics from "./pages/Analytics";
-import NotFound from "./pages/NotFound";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useAuth } from "./context/AuthContext";
+import AdminLogin from "./pages/AdminLogin";
+import AdminDashboard from "./pages/AdminDashboard";
 
-const queryClient = new QueryClient();
+function ProtectedAdminRoute({ children }: { children: JSX.Element }) {
+  const { user } = useAuth();
+  
+  console.log("🔍 Auth check:", user);
+  
+  if (user && user.role === "admin") {
+    return children;
+  }
+  
+  return <Navigate to="/admin/login" replace />;
+}
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Layout>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/report" element={<ReportIssue />} />
-            <Route path="/analytics" element={<Analytics />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Layout>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+function App() {
+  return (
+    <BrowserRouter>
+      <div style={{ padding: "20px" }}>
+        <h1 style={{ color: "blue", marginBottom: "30px" }}>FINAL AUTH TEST</h1>
+        <Routes>
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route 
+            path="/admin" 
+            element={
+              <ProtectedAdminRoute>
+                <AdminDashboard />
+              </ProtectedAdminRoute>
+            } 
+          />
+          <Route path="/" element={<div style={{ color: "green", fontSize: "24px" }}>HOME PAGE</div>} />
+          <Route path="*" element={<div style={{ color: "red", fontSize: "24px" }}>404</div>} />
+        </Routes>
+      </div>
+    </BrowserRouter>
+  );
+}
 
 export default App;
